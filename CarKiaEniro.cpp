@@ -14,7 +14,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <WString.h>
-#include <string.h>
+#include <String.h>
 #include <sys/time.h>
 #include "LiveData.h"
 #include "CarKiaEniro.h"
