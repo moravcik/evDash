@@ -366,7 +366,7 @@ void startBleScan() {
 
   liveData->foundMyBleDevice = NULL;
   liveData->scanningDeviceIndex = 0;
-  board->displayMessage(" > Scanning BLE4 devices", "40 seconds");
+  board->displayMessage(" > Scanning BLE4 devices", "40sec.or hold middle&RST");
 
   // Start scanning
   Serial.println("Scanning BLE devices...");
@@ -467,37 +467,38 @@ bool sendDataViaGPRS() {
 
   Serial.println("Start HTTP POST...");
 
-  StaticJsonDocument<250> jsonData;
+  StaticJsonDocument<450> jsonData;
 
-  jsonData["akey"] = liveData->settings.remoteApiKey;
-  jsonData["soc"] = liveData->params.socPerc;
-  jsonData["soh"] = liveData->params.sohPerc;
-  jsonData["batK"] = liveData->params.batPowerKw;
-  jsonData["batA"] = liveData->params.batPowerAmp;
-  jsonData["batV"] = liveData->params.batVoltage;
-  jsonData["auxV"] = liveData->params.auxVoltage;
-  jsonData["MinC"] = liveData->params.batMinC;
-  jsonData["MaxC"] = liveData->params.batMaxC;
-  jsonData["InlC"] = liveData->params.batInletC;
-  jsonData["fan"] = liveData->params.batFanStatus;
-  jsonData["cumCh"] = liveData->params.cumulativeEnergyChargedKWh;
-  jsonData["cumD"] = liveData->params.cumulativeEnergyDischargedKWh;
+  jsonData["apikey"] = liveData->settings.remoteApiKey;
+  jsonData["carType"] = liveData->settings.carType;
+  jsonData["socPerc"] = liveData->params.socPerc;
+  jsonData["sohPerc"] = liveData->params.sohPerc;
+  jsonData["batPowerKw"] = liveData->params.batPowerKw;
+  jsonData["batPowerAmp"] = liveData->params.batPowerAmp;
+  jsonData["batVoltage"] = liveData->params.batVoltage;
+  jsonData["auxVoltage"] = liveData->params.auxVoltage;
+  jsonData["batMinC"] = liveData->params.batMinC;
+  jsonData["batMaxC"] = liveData->params.batMaxC;
+  jsonData["batInletC"] = liveData->params.batInletC;
+  jsonData["batFanStatus"] = liveData->params.batFanStatus;
+  jsonData["cumulativeEnergyChargedKWh"] = liveData->params.cumulativeEnergyChargedKWh;
+  jsonData["cumulativeEnergyDischargedKWh"] = liveData->params.cumulativeEnergyDischargedKWh;
 
-  char payload[200];
+  char payload[450];
   serializeJson(jsonData, payload);
 
   Serial.print("Sending payload: ");
   Serial.println(payload);
 
   Serial.print("Remote API server: ");
-  Serial.println(liveData->settings.remoteApiSrvr);
+  Serial.println(liveData->settings.remoteApiUrl);
 
-  uint16_t rc = sim800l->doPost(liveData->settings.remoteApiSrvr, "application/json", payload, 10000, 10000);
+  uint16_t rc = sim800l->doPost(liveData->settings.remoteApiUrl, "application/json", payload, 10000, 10000);
   if(rc == 200) {
-    Serial.println(F("HTTP POST successful"));
+    Serial.println("HTTP POST successful");
   } else {
     // Failed...
-    Serial.print(F("HTTP POST error: "));
+    Serial.print("HTTP POST error: ");
     Serial.println(rc);
   }
 
@@ -592,7 +593,8 @@ void setup(void) {
   liveData->pBLEScan->setActiveScan(true);
 
   // Skip BLE scan if middle button pressed
-  if (!board->skipAdapterScan()) {
+  Serial.println(liveData->settings.obdMacAddress);
+  if (strcmp(liveData->settings.obdMacAddress, "00:00:00:00:00:00") != 0 && !board->skipAdapterScan()) {
     startBleScan();
   }
 
